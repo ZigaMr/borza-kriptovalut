@@ -117,13 +117,16 @@ def kupljene_valute(id):
 
 
 def zasluzek(id):
-    sql='''SELECT -SUM(kolicina* cena)
+    sql='''SELECT Valuta,-SUM(kolicina* cena)
     FROM Zgodovina WHERE (?) = Oseba
     GROUP BY Oseba, Valuta'''
-    sez = []
-    for vrednost, in con.execute(sql,[id]):
-        sez.append(vrednost)
-    return round(sum(sez),2)
+    sez = [[],[]]
+    for valuta,vrednost in con.execute(sql,[id]):
+        if vrednost >= 0:
+            sez[0].append([valuta,round(vrednost,2)])
+        else:
+            sez[1].append([valuta,round(vrednost,2)])
+    return sez
 
 def vrni_zgodovino(id):
     '''[id, valuta, kolicina, cena, datum]'''

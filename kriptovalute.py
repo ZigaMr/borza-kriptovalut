@@ -305,4 +305,4 @@ def odjavi():
     redirect('/')
 
 # poženemo strežnik na portu 8080, glej http://localhost:8080/
-run(host='localhost', port=8080,debug=True, reloader=True) #problem reloader idle
+run(host='localhost', port=8080,debug=True, reloader=False) #problem reloader idle

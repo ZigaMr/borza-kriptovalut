@@ -1,4 +1,8 @@
 %rebase('osnova.html', naslov='Oseba', navigator='/ Oseba')
+<style>
+	.negative { color : red; }
+	.positive { color : green; }
+</style>
 
 <div class="navbar">
   <div class="dropdown">
@@ -28,7 +32,14 @@
       <i class="fa fa-caret-down"></i>
     </button>
     <div class="dropdown-content">
-      <ul id="zasluzek"> {{zasluzek}}</ul>
+      <!--<ul id="zasluzek"> {{zasluzek}}</ul>-->
+	  %for item in zasluzek[0]:
+			<h1 style="color:green;"> {{item[0]+ " " + str(item[1])}} </h1>
+	  %end
+	  %for item in zasluzek[1]:
+			<h1 style="color:red;"> {{item[0]+ " " + str(item[1])}} </h1>
+	  %end
+
     </div>
   </div>
     <div class="dropdown">
@@ -166,4 +177,5 @@ s.src = theUrl + ( theUrl.indexOf("?") >= 0 ? "&" : "?") + "app=" + appName;
 embedder.appendChild(s);
 };
 </script>
+
 
