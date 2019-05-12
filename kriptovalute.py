@@ -1,7 +1,8 @@
 import modeli, dobi_zneske
 from bottle import *
 import hashlib # racunaje md5
-
+import json,requests
+import pandas as pd
 secret = "to skrivnost je zelo tezko uganiti 1094107c907cw982982c42"
 
 def get_administrator():
@@ -38,7 +39,31 @@ def password_md5(s):
 @get('/')
 def glavniMenu():
     valute = modeli.seznam_valut()
-    return template('glavni.html', mail=None, geslo=None,ime=None,priimek=None, valute=valute,napaka_registriraj=None,napaka_prijava=None)
+    data = requests.get(r'https://www.bitstamp.net/api/v2/order_book/ethbtc')
+    data = data.json()
+    
+    bids = pd.DataFrame()
+    bids['quantity'] = [i[1] for i in data['bids']]
+    bids['price'] = [i[0] for i in data['bids']]
+    asks = pd.DataFrame()
+    asks['price'] = [i[0] for i in data['asks']]
+    asks['quantity'] = [i[1] for i in data['asks']]
+    
+    asks.price = asks.price.apply(float)
+    asks.quantity = asks.quantity.apply(float)
+    
+    bids.price = bids.price.apply(float)
+    bids.quantity = bids.quantity.apply(float)
+    
+    bids_dict = {x[1]:x[0] for x in bids.itertuples(index=False)}
+    asks_dict = {x[0]:x[1] for x in asks.itertuples(index=False)}
+    bidask = dict()
+    bidask['asks'] = asks_dict
+    bidask['bids'] = bids_dict
+    
+    data['asks'] = [{'price':float(i[0]), 'amount':float(i[1])} for i in data['asks']][:100]
+    data['bids'] = [{'price':float(i[0]), 'amount':float(i[1])} for i in data['bids']][:100]
+    return template('glavni.html', mail=None, geslo=None,ime=None,priimek=None, valute=valute,napaka_registriraj=None,napaka_prijava=None, orderbook=data)
 
 @get('/static/<filename:path>')
 def static(filename):
@@ -84,16 +109,16 @@ def prodaj():
     kol = float(request.forms.kol)
     kolicina = float(request.forms.kolicina)
     kolicina = min(kol, kolicina)
-    modeli.prodaj_valuto(id, ime, kolicina,vred)
+    modeli.prodaj_valuto(id, ime, kolicina, vred)
     redirect('/oseba/'+str(id))
-    return template('oseba.html', id=id, ime = ime, kol=kol,vred=vred,kolicina=kolicina)
+    return template('oseba.html', id=id, ime = ime, kol=kol, vred=vred, kolicina=kolicina)
 
 @get('/administrator')
 def administrator():
     if get_administrator():
         valute = modeli.seznam_valut()
         return template('administrator.html', valute=valute)
-    abort(404,"Not found: '/administrator'")
+    abort(404, "Not found: '/administrator'")
 
 @get('/administrator/osebe')
 def administrator_osebe():
